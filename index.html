@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AP21110010125</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .error {
+      color: red;
+    }
+    .response {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>AP21110010125</h1>
+  <div>
+    <label for="jsonInput">Enter JSON:</label>
+    <input type="text" id="jsonInput" placeholder='{"data": ["A", "1", "B", "2"]}' />
+    <button id="submitBtn">Submit</button>
+    <div id="error" class="error"></div>
+  </div>
+  <div id="dropdownContainer" style="display: none;">
+    <label for="options">Select Options:</label>
+    <select id="options" multiple>
+      <option value="alphabets">Alphabets</option>
+      <option value="numbers">Numbers</option>
+      <option value="highest_alphabet">Highest Alphabet</option>
+    </select>
+  </div>
+  <div id="response" class="response"></div>
+
+  <script>
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const jsonInput = document.getElementById('jsonInput').value;
+      const errorDiv = document.getElementById('error');
+      const dropdownContainer = document.getElementById('dropdownContainer');
+      const responseDiv = document.getElementById('response');
+  
+      errorDiv.textContent = '';
+      responseDiv.textContent = '';
+  
+      try {
+        const data = JSON.parse(jsonInput);
+        const response = await fetch('http://localhost:3000/bfhl', { // Ensure this URL matches your server's URL
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+  
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+  
+        const result = await response.json();
+        dropdownContainer.style.display = 'block';
+  
+        document.getElementById('options').addEventListener('change', () => {
+          const selectedOptions = Array.from(document.getElementById('options').selectedOptions).map(option => option.value);
+          let output = {};
+  
+          if (selectedOptions.includes('alphabets')) {
+            output.alphabets = result.alphabets;
+          }
+          if (selectedOptions.includes('numbers')) {
+            output.numbers = result.numbers;
+          }
+          if (selectedOptions.includes('highest_alphabet')) {
+            output.highest_alphabet = result.highest_alphabet;
+          }
+  
+          responseDiv.textContent = JSON.stringify(output, null, 2);
+        });
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          errorDiv.textContent = 'Invalid JSON input: ' + error.message;
+        } else {
+          errorDiv.textContent = 'Error: ' + error.message;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
